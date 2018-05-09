@@ -3,7 +3,7 @@ title: "STAT 420 Analysis Project"
 author: "Spring 2018 JangHyunChoi (jhchoi3), Eldon Hsiao (ehsiao4), Tony Shen (tonys2), Alan Yu (ayu24) "
 date: 'Due: Monday, May 7th by 11:00 AM CT'
 output:
-  html_document:
+  rmarkdown::github_document
     theme: readable
     toc: yes
 ---
