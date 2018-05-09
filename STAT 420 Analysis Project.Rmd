@@ -1,0 +1,368 @@
+---
+title: "STAT 420 Analysis Project"
+author: "Spring 2018 JangHyunChoi (jhchoi3), Eldon Hsiao (ehsiao4), Tony Shen (tonys2), Alan Yu (ayu24) "
+date: 'Due: Monday, May 7th by 11:00 AM CT'
+output:
+  html_document:
+    theme: readable
+    toc: yes
+---
+
+#Predicting a Baby's Health Based on NCHS' Vital Statistics Natality Birth Data
+
+##Introduction
+###Statement
+
+The Centers for Disease Control and Prevention (CDC) is one of the main anchors in the Healthcare Industry in the United States. Since the main goal of this institute is to protect and improve public health, the CDC collects alot of data about our healthcare. One specific facet of the healthcare industry we like to explore is about babies and infant mortality.
+
+###Background Information
+
+In this project, we want to create a model that can accurately predict a baby's weight. We believe that a baby's weight at birth is a good indicator of health (the heavier the healthier). The data set is from the Center for Disease Control (CDC). The data was accessed from the National Bureau of Economic Research. Specifically, we used NCHS' Vital Statistics Natality Birth Data (https://www.nber.org/data/vital-statistics-natality-data.html). We want to create a model to predict birth weight because it is associated with many later-life conditions, such as diabetes, obesity, intelligence, and neonatal infection.
+
+
+##Description of the original data set and relevant variables
+
+From the data, we choose eight continuous variables and two categorical variables. We chosed these specific predictor variables based on our prior experiences and what we think can be important in explaining a baby's potential weight at birth.
+
+**Response variable:**
+
+- dbwt - Birth Weight in grams (g)
+
+**Continuous variables:**
+
+- cig_0 - number of cigarettes smoked before pregnancy
+- cig_1 - number of cigarettes during first trimester
+- cig_2 - number of cigarettes during second trimester
+- cig_3 - number of cigarettes during third trimester
+- mager - Mothers age (years)
+- bmi - Body mass index of the mother
+- previs - Number of prenatal visits
+- precare - month prenatal care began 
+
+**Categorical variables:**
+
+- meduc - mother's education background 
+
+    = 1 8th grade or less
+  
+    = 2 9th to 12th grade with no diploma
+  
+    = 3 High School Graduate or GED completed
+  
+    = 4 Some college credit, but not a degree
+  
+    = 5 Associate Degree (AA, AS)
+  
+    = 6 Bachelor's Degree (BA, AB, BS)
+  
+    = 7 Master's Degree (MA, MS, MEng, MEd, MSW, MBA)
+  
+    = 8 Doctorate (PhD, EdD) or Professional Degree (MD, DDS, DVM, LLB, JD)
+
+- dmeth_rec - delivery method
+  
+    = 1 "Vaginal" 
+  
+    = 2 "C-Section"
+
+###Description of additional data preparation
+
+To prepare the data, we created a new Excel sheet with the selected predictor variables and the response variable. We used Excel to filter out data points that were reported as unknown or missing. We then parsed and deleted the observations with missing data points. Since the actual dataset is rather large so we limited this study to use 2000 observations. The raw data file can be obtained from (https://www.nber.org/data/vital-statistics-natality-data.html) under United States -- Data & Documentation, 2016 Birth Data csv file. 
+
+##Methods
+###Procedure
+
+For our Initial setp up, We will be using the "faraway", "lmtest", "MASS" to do this analysis.
+```{r libraries}
+library(faraway)
+library(lmtest)
+library(MASS)
+```
+
+We load the dataset.
+```{r, dataset}
+birth_data = data.frame(read.csv("birthdatacleaned2k.csv"))
+```
+
+
+Now we will build the full model with all the predictor variables that we selected from earlier.
+```{r full model}
+birth_model = lm(dbwt ~ as.factor(meduc) + precare + as.factor(dmeth_rec) + mager + previs + bmi + cig_0 + cig_1 + cig_2 + cig_3, data = birth_data)
+summary(birth_model)
+```
+Next, we conduct a F-test to test model significance.
+
+The null and alternative hypotheses \[H_0: \beta_{as.factor(meduc)} = \beta_{precare} =... = \beta_{cig_3} = 0
+\]
+\[
+H_1: At\ least\ one\ of\ \beta \neq 0
+\]
+
+The p-value of the test
+```{r p-value}
+f = summary(birth_model)$fstatistic
+p = pf(f[1], f[2], f[3], lower.tail = FALSE)
+p
+```
+- A statistical decision at $\alpha = 0.01$.
+
+Reject the null hypothesis, the full model is significant, at least 1 beta is significant in explaining weight of the baby.
+
+We need to conduct an individual t-test to see any of the predictor variables are significant. For this test we will reject the null hypothesis at $\alpha = 0.05$. If we reject thet null hypothesis that is to say that the predictor variable is significant in explaining birth weight of a baby.
+```{r individual t test p values}
+round(summary(birth_model)$coefficients[ , "Pr(>|t|)"], 5)
+```
+
+There are numerous predictor variables that are insignificant in explaining birth weight. Let's make a reduced model by removing insignificant variables that have a p-value greater than .05 and see if there are any improvements.
+
+```{r reduced full model}
+birth_redmodel = lm(dbwt ~ . - meduc - mager - cig_0 - cig_1 - cig_2 - cig_3, data = birth_data)
+summary(birth_redmodel)
+```
+
+The model is still significant, but the r.squared values went down and "precare" became insignficant. Nevertheless let's conduct a nested models test to see which model we prefer.
+
+```{r anova full and reduced model}
+anova(birth_redmodel, birth_model)
+```
+- The null and alternative hypotheses.\[H_0: \beta_{as.factor(meduc2)} = \beta_{precare} =... = \beta_{cig_3} = 0
+\]
+\[
+H_1: At\ least\ one\ of\ \beta \neq 0
+\]
+- The value of the test statistic.
+```{r anova test statistic 1}
+anova(birth_redmodel, birth_model)$"F"
+```
+- The p-value of the test.
+```{r anova p-value 1 }
+anova(birth_redmodel, birth_model)$"Pr(>F)"
+```
+- A statistical decision at $\alpha = 0.01$.
+
+Reject the null hypothesis at alpha = 0.01, The "reduced model" (birth_redmodel) appears to be most appropriate model in this case.
+
+While the test indicates that the reduced model is the preferred model we need to look into model diagnostics to see if this reduced model is really the "preferred" model.
+
+
+###Decision making process
+
+One of the most important aspects of regression analysis is verifying that our results are not being influenced by assumption violations. let's check to see if any model assumptions are being violated. 
+
+```{r, checking model assumptions for the fullmodel}
+plot(birth_model)
+vif(birth_model)
+bptest(birth_model)
+shapiro.test(sample(resid(birth_model), 1500))
+```
+
+We will output various graphs to check for any violations in our model. To check if the errors follow a normal distribution we use the shapiro-wilk test and Q-Q plots. To check the if the assumption of constant variance of errors (also known as homoscedasticity) we use the Breuch Pagan test (we will refer to it as "bptest" in this report) and Residual plots. We will check for unnecessary outliers using cooks.distance. And Finally we will check for serious multicollinearity using variance inflation factor (we will refer to it as "vif" in this report).
+
+The p-value for the Breuch Pagan test is low enough that we reject $H_0$ so we believe that the constant variance assumption has been violated. 
+
+The shapiro test is rejected so we believe that the normality assumption has been violated.
+
+```{r scatterplot matrices}
+pairs(birth_data, panel = panel.smooth)
+```
+
+The scatterplot matrix is very small but just from eye balling the plots, there are predictor variables showing signs of multicollinearity that vif has identified from before. We can also see the general trend of each variable as well.
+
+The variable with the highest value is as.factor(meduc)4, Values greater than 5 means multicollinearity is present. "cig_2" and "cig_3" as well as many of the levels of "meduc" could be a cause for concern. So let's get rid of "cig_2", "cig_3" and "meduc" to see if there is still any multicollinearity concerns.
+
+Model that has "cig_2", "cig_3" and "meduc" removed.
+```{r reduced model based on vif}
+birth_model2 = lm(dbwt ~ . - cig_2 - cig_3 - meduc, data = birth_data)
+summary(birth_model2)
+```
+
+The model is still significant based on the low p-value. 
+
+Let's check the assumptions again
+```{r checking assumptions for model2}
+plot(birth_model2)
+bptest(birth_model2)
+shapiro.test(sample(resid(birth_model2), 1500))
+vif(birth_model2)
+```
+
+The vif for the predictor variables are all lower than 5. Ideally we would want all vifs to be 1, so that would mean no predictors are correlated. The assumption of no multicollinearity is met.
+The assumption constant variance and normality of errors are still violated.
+Now, we should also look for unsual observations that have high leverage.
+
+```{r check leverage}
+birth_model_lev = hatvalues(birth_model2)
+sum(birth_model_lev > 2 * mean(birth_model_lev))
+```
+There are 155 observations that can be considered high leverage. They have a high potential to influence model fit.
+
+We also need to check for influential observations.
+```{r check influential obs}
+birth_model_cook = cooks.distance(birth_model2)
+sum(birth_model_cook > 4 / length(birth_model_cook))
+```
+There are 120 observations that can be considered influential.
+
+Now lets make a model without any points we've identified as influential.
+```{r influential model}
+birth_model_noinf = lm(dbwt ~ . - cig_2 - cig_3 - meduc, data = birth_data, subset = birth_model_cook <= 4 / length(birth_model_cook))
+
+summary(birth_model_noinf)
+```
+
+This model is still significant, r-squared value also increased compared to the previous model.
+
+Let's now check the assumptions for the influential model we created from earlier.
+```{r check assumptions for influential model}
+plot(birth_model_noinf)
+bptest(birth_model_noinf)
+shapiro.test(sample(resid(birth_model_noinf), 1500))
+vif(birth_model_noinf)
+```
+
+When we got rid of the influential variables, p-value for the bptest is high enough that we do not reject the null hypothesis at $\alpha = 0.01$, the errors have constant variance. The residual plots shows alot of points concentrated in a certain area but the mean is close to zero and there is no "cone" shaped present. The shapiro test also has a high p-value so we do not reject the null hypothesis, the data could have been sampled from a normal distirbution. The noraml Q-Q plot also looks like a perfectly straight line which agrees with the assumption of normality of errors. The vif are all below 5 so there is not serious signs of multicollinearity. The cooks distance is also a straight line so that is a good sign.
+
+We cannot do an anova test since the influential model has reduced number of observations. We can use "leave one out cross validation root mean squared error" or "LOOCV RMSE" to measure how well our model predicts.
+```{r loocv rmse}
+get_loocv_rmse = function(model) {
+  sqrt(mean((resid(model) / (1 - hatvalues(model))) ^ 2))
+}
+```
+
+```{r comparing loocv rmse}
+get_loocv_rmse(birth_model_noinf)
+get_loocv_rmse(birth_model)
+
+```
+Using LOOCV RMSE, we prefer the model with no influential variables ("birth_model_noinf").
+
+
+```{r rmse and adj.r.squared comparsion}
+rmse = sqrt(mean(resid(birth_model_noinf) ^ 2))
+rmse
+rmse = sqrt(mean(resid(birth_model) ^ 2))
+rmse
+summary(birth_model_noinf)$adj.r.squared
+summary(birth_model)$adj.r.squared
+```
+
+Looking at just the root mean squared errors (RMSE), we see the values are similar. The adjusted R squared is also an improvement over our original model. Even though the error values are quite large, it is an improvement over the original full model.
+
+```{r current preferred model}
+summary(birth_model_noinf)
+```
+Looking back at our model with influential variables we removed there is a predictor variable that is insignificant (cig_0)
+
+let's remove "cig_0" and see if there are anymore improvements to the model.
+```{r reduced influential model}
+birth_redmodel_noinf = lm(dbwt ~ . - cig_0 - cig_2 - cig_3 - meduc, data = birth_data, subset = birth_model_cook <= 4 / length(birth_model_cook))
+
+summary(birth_redmodel_noinf)
+```
+
+Check our assumptions again
+
+```{r reduced model assumptions}
+plot(birth_redmodel_noinf)
+bptest(birth_redmodel_noinf)
+shapiro.test(sample(resid(birth_redmodel_noinf), 1500))
+vif(birth_redmodel_noinf)
+```
+
+The plots look very similar to our preferred model, "birth_model_noinf". The vif are all close to 1, so there is no sign of multicollinearity. The p-value for the Shapiro-Wilk test is high so we do not reject the null; the population is normally distributed. The Breusch-Pagan test also has a high enough p-value that we do not reject the null hypothesis at $alpha = 0.01$, the residuals seem to have an approximately equal "spread" around the regression line.
+
+We should also conduct a nested models test to see if the variables removed in "birth_redmodel_oninf" is better than "birth_model_noinf" we had from earlier.
+
+- The null and alternative hypotheses.\[H_0: \beta_{cig_0} = \beta_{precare} =... = \beta_{cig_3} = 0
+\]
+\[
+H_1: At\ least\ one\ of\ \beta \neq 0
+\]
+- The value of the test statistic.
+```{r anova test statistic}
+anova(birth_redmodel_noinf, birth_model_noinf)$"F"
+```
+- The p-value of the test.
+```{r anova p-value }
+anova(birth_redmodel_noinf, birth_model_noinf)$"Pr(>F)"
+```
+- A statistical decision at $\alpha = 0.01$.
+Do not reject the null hypothesis at alpha = 0.01, The "full model" (birth_model_noinf) appears to be most appropriate model in this case.
+
+We can also try other models to see if it is better than "birth_model_noinf". We will use Akaike information criterion (AIC) as a means for model selection. 
+
+```{r aic model}
+birth_aicmodel = stepAIC(birth_model, direction = "both")
+```
+
+```{r check aic assumptions}
+plot(birth_aicmodel)
+bptest(birth_aicmodel)
+shapiro.test(sample(resid(birth_aicmodel), 1500))
+vif(birth_aicmodel)
+```
+
+The aic model has no predictor variables with multicollinearity. However, the assumptions about constant variance and normality is violated based on the low p-values as shown in the bptest and the shapiro test.
+
+We could also try to create the largest model and use backwards Akaike Information Criterion to possible find a good model.
+
+```{r huge aic model}
+birth_hugemodel = lm(dbwt ~ . ^ 2 + I(mager ^ 2) + I(precare ^ 2) + I(previs ^ 2) + I(cig_0 ^ 2) +I(cig_1 ^ 2) + I(as.factor(meduc ^ 2)) + I(as.factor(dmeth_rec ^ 2)) + I(bmi ^ 2), data = birth_data)
+
+fit_aic = step(birth_hugemodel, direction = "backward", trace = 0)
+summary(fit_aic)
+```
+
+Check for model assumptions again.
+
+```{r huge aic model assumptions}
+plot(fit_aic)
+bptest(fit_aic)
+shapiro.test(sample(resid(fit_aic), 1500))
+vif(fit_aic)
+```
+
+As with the previous model, there is still violations in assumptions so this is not a good model in explaining birth weight of a baby.
+
+
+#Results
+##Final Model Selected
+Our final model is 
+```{r final model coefficients}
+summary(birth_model_noinf)$coefficients[,1]
+```
+
+###Interpretation of the Final model
+$\beta_0 \text{intercept} = 2977.6742$ is the estimated weight of a baby at birth with 0 mager(years), precare, previs, cig_0, cig_1, bmi and dmeth_rec.
+
+$\beta_1 \text{mager} = 4.3272$ is the estimated change in mean weight of a baby at birth for a 1 year increase in mother's age with a certain precare, previs, cig_0, cig_1, bmi, dmeth_rec.
+
+$\beta_2 \text{precare} = 17.9035$ is the estimated change in mean weight of a baby at birth for a 1 month increase in length of prenatal care with a certain mager, previs, cig_0, cig_1, bmi, dmeth_rec.
+
+$\beta_3 \text{previs} = 14.1380$ is the estimated change in mean weight of a baby at birth for 1 increase in number of prenatal visits with a certain mager, precare, cig_0, cig_1, bmi, dmeth_rec.
+
+$\beta_4 \text{cig_0} = -.3959$ is the estimated change in mean weight of a baby at birth for 1 increase in number of cigarettes smoked before pregnancy with a certain mager, precare, previs, cig_1, bmi, dmeth_rec.
+
+$\beta_5 \text{cig_1} = -14.5741$ is the estimated change in mean weight of a baby at birth for 1 increase in body mass index with a certain mager, precare, previs, cig_0, bmi, dmeth_rec.
+
+$\beta_6 \text{bmi} = 7.8069$ is the estimated change in mean weight of a baby at birth for 1 increase in number of cigarettes smoked in the 1st trimester with a certain mager, precare, previs, cig_0, cig_1, dmeth_rec.
+
+$\beta_7 \text{dmeth_rec} = -53.3494$ is the estimated change in mean weight of a baby at birth if method of delivery is "C-section" with a certain mager, precare, previs, cig_0, cig_1, bmi.
+
+We can also plot the data to see if there are any individual relationships the predictor variables have with the response variable
+```{r scatter plot of each variable}
+par(mfrow = c(2,4))
+plot(dbwt ~ mager, data = birth_data)
+plot(dbwt ~ precare, data = birth_data)
+plot(dbwt ~ previs, data = birth_data)
+plot(dbwt ~ cig_0, data = birth_data)
+plot(dbwt ~ cig_1, data = birth_data)
+plot(dbwt ~ bmi, data = birth_data)
+plot(dbwt ~ dmeth_rec, data = birth_data)
+```
+
+Looking at the scatter plots there does not seem to be any definite positive or negative relationship any between the predictor variables and response variables but there seems to be an upward trend.
+
+##Conclusion
+The results were somewhat to be expected. Since this is dealing with real life data, there is no definitive or obvious pattern in the data so our measures and r squared values may seem inaccurate and low; our dataset is not very "clean". As seen in our final model, Cigarettes smoked before and during pregnancy is known to negatively impact not only the health of a baby but also the mother. "precare" and "previs" are all positively correlated with birth weight since, the more doctors are able to monitor the mother's health, the better the babies health. In terms of mother's age, we believe that as the mother gets older, they become more mature and make better decisions about their health so older mother's generally have healthier babies. The coefficient for "dmeth_rec" seems to indicate that having a C-section is bad for the baby. We were suprised that mother's education was not significant since we believed that education background is related to making better health decisions. In the future, it might be interesting to explore this dataset using more [advanced methods of analysis](https://en.wikipedia.org/wiki/Statistical_learning_theory) to find a better prediction model and using a larger subset of the data.
+
