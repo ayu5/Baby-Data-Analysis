@@ -4,7 +4,6 @@ author: "Spring 2018 JangHyunChoi (jhchoi3), Eldon Hsiao (ehsiao4), Tony Shen (t
 date: 'Due: Monday, May 7th by 11:00 AM CT'
 output:
   html_document:
-    keep_md: true
     theme: readable
     toc: yes
 ---
