@@ -8,7 +8,7 @@ output:
 ---
 
 #Predicting a Baby's Health Based on NCHS' Vital Statistics Natality Birth Data
-aa
+
 ##Introduction
 ###Statement
 
@@ -291,7 +291,7 @@ Do not reject the null hypothesis at alpha = 0.01, The "full model" (birth_model
 We can also try other models to see if it is better than "birth_model_noinf". We will use Akaike information criterion (AIC) as a means for model selection. 
 
 ```{r aic model}
-birth_aicmodel = stepAIC(birth_model, direction = "both")
+birth_aicmodel = stepAIC(birth_model, subset = birth_model_cook <= 4 / length(birth_model_cook), direction = "both")
 ```
 
 ```{r check aic assumptions}
@@ -306,7 +306,7 @@ The aic model has no predictor variables with multicollinearity. However, the as
 We could also try to create the largest model and use backwards Akaike Information Criterion to possible find a good model.
 
 ```{r huge aic model}
-birth_hugemodel = lm(dbwt ~ . ^ 2 + I(mager ^ 2) + I(precare ^ 2) + I(previs ^ 2) + I(cig_0 ^ 2) +I(cig_1 ^ 2) + I(as.factor(meduc ^ 2)) + I(as.factor(dmeth_rec ^ 2)) + I(bmi ^ 2), data = birth_data)
+birth_hugemodel = lm(dbwt ~ . ^ 2 + I(mager ^ 2) + I(precare ^ 2) + I(previs ^ 2) + I(cig_0 ^ 2) +I(cig_1 ^ 2) + I(as.factor(meduc ^ 2)) + I(as.factor(dmeth_rec ^ 2)) + I(bmi ^ 2), data = birth_data, subset = birth_model_cook <= 4 / length(birth_model_cook))
 
 fit_aic = step(birth_hugemodel, direction = "backward", trace = 0)
 summary(fit_aic)
@@ -360,7 +360,7 @@ plot(dbwt ~ bmi, data = birth_data)
 plot(dbwt ~ dmeth_rec, data = birth_data)
 ```
 
-Looking at the scatter plots there does not seem to be any definite positive or negative relationship any between the predictor variables and response variables but there seems to be an upward trend.
+Looking at the scatter plots there does not seem to be any definite positive or negative relationship any between the predictor variables and response variables but there seems to be an upward trend.AA
 
 ##Conclusion
 The results were somewhat to be expected. Since this is dealing with real life data, there is no definitive or obvious pattern in the data so our measures and r squared values may seem inaccurate and low; our dataset is not very "clean". As seen in our final model, Cigarettes smoked before and during pregnancy is known to negatively impact not only the health of a baby but also the mother. "precare" and "previs" are all positively correlated with birth weight since, the more doctors are able to monitor the mother's health, the better the babies health. In terms of mother's age, we believe that as the mother gets older, they become more mature and make better decisions about their health so older mother's generally have healthier babies. The coefficient for "dmeth_rec" seems to indicate that having a C-section is bad for the baby. We were suprised that mother's education was not significant since we believed that education background is related to making better health decisions. In the future, it might be interesting to explore this dataset using more [advanced methods of analysis](https://en.wikipedia.org/wiki/Statistical_learning_theory) to find a better prediction model and using a larger subset of the data.

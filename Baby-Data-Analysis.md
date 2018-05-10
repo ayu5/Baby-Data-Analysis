@@ -324,7 +324,7 @@ shapiro.test(sample(resid(birth_model), 1500))
     ##  Shapiro-Wilk normality test
     ## 
     ## data:  sample(resid(birth_model), 1500)
-    ## W = 0.97145, p-value < 2.2e-16
+    ## W = 0.96629, p-value < 2.2e-16
 
 We will output various graphs to check for any violations in our model. To check if the errors follow a normal distribution we use the shapiro-wilk test and Q-Q plots. To check the if the assumption of constant variance of errors (also known as homoscedasticity) we use the Breuch Pagan test (we will refer to it as "bptest" in this report) and Residual plots. We will check for unnecessary outliers using cooks.distance. And Finally we will check for serious multicollinearity using variance inflation factor (we will refer to it as "vif" in this report).
 
@@ -402,7 +402,7 @@ shapiro.test(sample(resid(birth_model2), 1500))
     ##  Shapiro-Wilk normality test
     ## 
     ## data:  sample(resid(birth_model2), 1500)
-    ## W = 0.96974, p-value < 2.2e-16
+    ## W = 0.97406, p-value = 8.354e-16
 
 ``` r
 vif(birth_model2)
@@ -495,7 +495,7 @@ shapiro.test(sample(resid(birth_model_noinf), 1500))
     ##  Shapiro-Wilk normality test
     ## 
     ## data:  sample(resid(birth_model_noinf), 1500)
-    ## W = 0.99886, p-value = 0.4634
+    ## W = 0.9988, p-value = 0.4066
 
 ``` r
 vif(birth_model_noinf)
@@ -647,7 +647,7 @@ shapiro.test(sample(resid(birth_redmodel_noinf), 1500))
     ##  Shapiro-Wilk normality test
     ## 
     ## data:  sample(resid(birth_redmodel_noinf), 1500)
-    ## W = 0.99899, p-value = 0.585
+    ## W = 0.99868, p-value = 0.3172
 
 ``` r
 vif(birth_redmodel_noinf)
@@ -684,7 +684,7 @@ anova(birth_redmodel_noinf, birth_model_noinf)$"Pr(>F)"
 We can also try other models to see if it is better than "birth\_model\_noinf". We will use Akaike information criterion (AIC) as a means for model selection.
 
 ``` r
-birth_aicmodel = stepAIC(birth_model, direction = "both")
+birth_aicmodel = stepAIC(birth_model, subset = birth_model_cook <= 4 / length(birth_model_cook), direction = "both")
 ```
 
     ## Start:  AIC=25290.21
@@ -796,7 +796,7 @@ shapiro.test(sample(resid(birth_aicmodel), 1500))
     ##  Shapiro-Wilk normality test
     ## 
     ## data:  sample(resid(birth_aicmodel), 1500)
-    ## W = 0.97899, p-value = 5.321e-14
+    ## W = 0.96897, p-value < 2.2e-16
 
 ``` r
 vif(birth_aicmodel)
@@ -812,7 +812,7 @@ The aic model has no predictor variables with multicollinearity. However, the as
 We could also try to create the largest model and use backwards Akaike Information Criterion to possible find a good model.
 
 ``` r
-birth_hugemodel = lm(dbwt ~ . ^ 2 + I(mager ^ 2) + I(precare ^ 2) + I(previs ^ 2) + I(cig_0 ^ 2) +I(cig_1 ^ 2) + I(as.factor(meduc ^ 2)) + I(as.factor(dmeth_rec ^ 2)) + I(bmi ^ 2), data = birth_data)
+birth_hugemodel = lm(dbwt ~ . ^ 2 + I(mager ^ 2) + I(precare ^ 2) + I(previs ^ 2) + I(cig_0 ^ 2) +I(cig_1 ^ 2) + I(as.factor(meduc ^ 2)) + I(as.factor(dmeth_rec ^ 2)) + I(bmi ^ 2), data = birth_data, subset = birth_model_cook <= 4 / length(birth_model_cook))
 
 fit_aic = step(birth_hugemodel, direction = "backward", trace = 0)
 summary(fit_aic)
@@ -821,54 +821,49 @@ summary(fit_aic)
     ## 
     ## Call:
     ## lm(formula = dbwt ~ mager + meduc + precare + previs + cig_1 + 
-    ##     cig_2 + cig_3 + bmi + dmeth_rec + I(mager^2) + I(precare^2) + 
-    ##     I(previs^2) + I(bmi^2) + mager:dmeth_rec + meduc:bmi + meduc:dmeth_rec + 
-    ##     precare:cig_1 + precare:cig_3 + precare:bmi + precare:dmeth_rec + 
-    ##     previs:bmi + previs:dmeth_rec + cig_1:cig_3 + cig_1:bmi + 
-    ##     cig_1:dmeth_rec + cig_2:cig_3 + cig_3:bmi + cig_3:dmeth_rec, 
-    ##     data = birth_data)
+    ##     cig_2 + cig_3 + bmi + dmeth_rec + I(mager^2) + I(previs^2) + 
+    ##     I(cig_1^2) + I(bmi^2) + mager:previs + mager:bmi + mager:dmeth_rec + 
+    ##     meduc:bmi + meduc:dmeth_rec + precare:cig_1 + precare:cig_2 + 
+    ##     previs:cig_1 + previs:cig_2 + cig_2:cig_3 + bmi:dmeth_rec, 
+    ##     data = birth_data, subset = birth_model_cook <= 4/length(birth_model_cook))
     ## 
     ## Residuals:
     ##      Min       1Q   Median       3Q      Max 
-    ## -2873.21  -311.24    11.82   361.59  1602.80 
+    ## -1590.73  -297.73     0.32   321.08  1522.67 
     ## 
     ## Coefficients:
-    ##                    Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)       2084.9451   429.2187   4.858 1.28e-06 ***
-    ## mager               48.8849    20.0823   2.434  0.01501 *  
-    ## meduc               46.2835    42.5994   1.086  0.27740    
-    ## precare           -125.7430    56.6843  -2.218  0.02665 *  
-    ## previs              26.9381    14.9953   1.796  0.07258 .  
-    ## cig_1              -70.5664    31.4250  -2.246  0.02484 *  
-    ## cig_2              -20.1208    12.0499  -1.670  0.09512 .  
-    ## cig_3               73.0784    52.2015   1.400  0.16169    
-    ## bmi                 40.5336    14.2473   2.845  0.00449 ** 
-    ## dmeth_rec         -270.7055   210.1540  -1.288  0.19785    
-    ## I(mager^2)          -0.5153     0.3488  -1.477  0.13973    
-    ## I(precare^2)         6.4923     4.2401   1.531  0.12589    
-    ## I(previs^2)         -2.3984     0.3711  -6.464 1.29e-10 ***
-    ## I(bmi^2)            -0.5265     0.1891  -2.784  0.00542 ** 
-    ## mager:dmeth_rec    -13.7666     6.0298  -2.283  0.02253 *  
-    ## meduc:bmi           -4.0171     1.3104  -3.066  0.00220 ** 
-    ## meduc:dmeth_rec     48.8230    21.0263   2.322  0.02033 *  
-    ## precare:cig_1        8.7297     3.1734   2.751  0.00600 ** 
-    ## precare:cig_3       -8.5456     4.6739  -1.828  0.06765 .  
-    ## precare:bmi          2.0151     1.3775   1.463  0.14365    
-    ## precare:dmeth_rec   38.3270    23.4000   1.638  0.10160    
-    ## previs:bmi           0.8118     0.4409   1.841  0.06572 .  
-    ## previs:dmeth_rec    22.9551     7.3613   3.118  0.00184 ** 
-    ## cig_1:cig_3         -1.8652     0.7059  -2.642  0.00830 ** 
-    ## cig_1:bmi            2.7296     0.8728   3.128  0.00179 ** 
-    ## cig_1:dmeth_rec    -23.4295    10.7143  -2.187  0.02888 *  
-    ## cig_2:cig_3          2.3935     0.9726   2.461  0.01394 *  
-    ## cig_3:bmi           -3.2932     1.3748  -2.395  0.01670 *  
-    ## cig_3:dmeth_rec     30.8144    17.1479   1.797  0.07249 .  
+    ##                  Estimate Std. Error t value Pr(>|t|)    
+    ## (Intercept)     2737.5825   384.1025   7.127 1.46e-12 ***
+    ## mager             23.8894    19.9026   1.200 0.230172    
+    ## meduc            -21.2804    40.0673  -0.531 0.595401    
+    ## precare           17.5346     8.7336   2.008 0.044820 *  
+    ## previs             4.4054    16.2257   0.272 0.786031    
+    ## cig_1            -44.0943    30.4981  -1.446 0.148401    
+    ## cig_2             37.4972    38.8707   0.965 0.334837    
+    ## cig_3            -36.5297    15.6804  -2.330 0.019932 *  
+    ## bmi               22.4972    13.7994   1.630 0.103208    
+    ## dmeth_rec       -286.8557   177.4190  -1.617 0.106086    
+    ## I(mager^2)        -0.5893     0.3155  -1.868 0.061934 .  
+    ## I(previs^2)       -0.5192     0.3522  -1.474 0.140629    
+    ## I(cig_1^2)        -0.7760     0.3768  -2.060 0.039579 *  
+    ## I(bmi^2)          -0.5595     0.2032  -2.754 0.005952 ** 
+    ## mager:previs       0.7850     0.4930   1.592 0.111489    
+    ## mager:bmi          0.6235     0.3749   1.663 0.096466 .  
+    ## mager:dmeth_rec   -9.7339     5.4763  -1.777 0.075654 .  
+    ## meduc:bmi         -2.0695     1.2975  -1.595 0.110877    
+    ## meduc:dmeth_rec   68.0885    18.3505   3.710 0.000213 ***
+    ## precare:cig_1      9.7140     4.5249   2.147 0.031938 *  
+    ## precare:cig_2     -7.9768     5.4542  -1.463 0.143770    
+    ## previs:cig_1       2.7683     1.7140   1.615 0.106471    
+    ## previs:cig_2      -3.2537     2.1886  -1.487 0.137279    
+    ## cig_2:cig_3        2.2877     0.8959   2.553 0.010745 *  
+    ## bmi:dmeth_rec      7.8139     4.1054   1.903 0.057153 .  
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
-    ## Residual standard error: 544.1 on 1970 degrees of freedom
-    ## Multiple R-squared:  0.08997,    Adjusted R-squared:  0.07704 
-    ## F-statistic: 6.956 on 28 and 1970 DF,  p-value: < 2.2e-16
+    ## Residual standard error: 453.2 on 1854 degrees of freedom
+    ## Multiple R-squared:  0.0709, Adjusted R-squared:  0.05888 
+    ## F-statistic: 5.895 on 24 and 1854 DF,  p-value: < 2.2e-16
 
 Check for model assumptions again.
 
@@ -886,7 +881,7 @@ bptest(fit_aic)
     ##  studentized Breusch-Pagan test
     ## 
     ## data:  fit_aic
-    ## BP = 141.37, df = 28, p-value < 2.2e-16
+    ## BP = 33.721, df = 24, p-value = 0.08975
 
 ``` r
 shapiro.test(sample(resid(fit_aic), 1500))
@@ -896,26 +891,24 @@ shapiro.test(sample(resid(fit_aic), 1500))
     ##  Shapiro-Wilk normality test
     ## 
     ## data:  sample(resid(fit_aic), 1500)
-    ## W = 0.98012, p-value = 1.513e-13
+    ## W = 0.99843, p-value = 0.1829
 
 ``` r
 vif(fit_aic)
 ```
 
-    ##             mager             meduc           precare            previs 
-    ##         81.183155         28.887861         42.746931         26.540771 
-    ##             cig_1             cig_2             cig_3               bmi 
-    ##        140.450083          9.608714        127.939290         58.795600 
-    ##         dmeth_rec        I(mager^2)      I(precare^2)       I(previs^2) 
-    ##         53.469334         81.264550         16.971496         11.545536 
-    ##          I(bmi^2)   mager:dmeth_rec         meduc:bmi   meduc:dmeth_rec 
-    ##         40.751624         56.741674         26.205967         24.781130 
-    ##     precare:cig_1     precare:cig_3       precare:bmi precare:dmeth_rec 
-    ##         23.777697         16.625478         25.355372         17.601646 
-    ##        previs:bmi  previs:dmeth_rec       cig_1:cig_3         cig_1:bmi 
-    ##         29.918316         19.749029         13.842194         85.324829 
-    ##   cig_1:dmeth_rec       cig_2:cig_3         cig_3:bmi   cig_3:dmeth_rec 
-    ##         27.334896         14.567375         67.039182         24.408035
+    ##           mager           meduc         precare          previs 
+    ##      105.121280       34.740696        1.335081       36.820698 
+    ##           cig_1           cig_2           cig_3             bmi 
+    ##      122.411126      100.404972       10.782612       65.826524 
+    ##       dmeth_rec      I(mager^2)     I(previs^2)      I(cig_1^2) 
+    ##       49.808076       86.533753       11.019370       10.863888 
+    ##        I(bmi^2)    mager:previs       mager:bmi mager:dmeth_rec 
+    ##       52.630267       36.505984       76.117993       60.630300 
+    ##       meduc:bmi meduc:dmeth_rec   precare:cig_1   precare:cig_2 
+    ##       32.454832       25.081568       47.442318       35.982851 
+    ##    previs:cig_1    previs:cig_2     cig_2:cig_3   bmi:dmeth_rec 
+    ##       41.939871       34.817443        7.497697       32.489656
 
 As with the previous model, there is still violations in assumptions so this is not a good model in explaining birth weight of a baby.
 
@@ -969,7 +962,7 @@ plot(dbwt ~ dmeth_rec, data = birth_data)
 
 ![](Baby-Data-Analysis_files/figure-markdown_github/scatter%20plot%20of%20each%20variable-1.png)
 
-Looking at the scatter plots there does not seem to be any definite positive or negative relationship any between the predictor variables and response variables but there seems to be an upward trend.
+Looking at the scatter plots there does not seem to be any definite positive or negative relationship any between the predictor variables and response variables but there seems to be an upward trend.AA
 
 Conclusion
 ----------
