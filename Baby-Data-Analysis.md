@@ -324,7 +324,11 @@ shapiro.test(sample(resid(birth_model), 1500))
     ##  Shapiro-Wilk normality test
     ## 
     ## data:  sample(resid(birth_model), 1500)
+<<<<<<< HEAD
     ## W = 0.96629, p-value < 2.2e-16
+=======
+    ## W = 0.97025, p-value < 2.2e-16
+>>>>>>> 35deaae02b647d4a7fd87cc8afa8f284c7d65923
 
 We will output various graphs to check for any violations in our model. To check if the errors follow a normal distribution we use the shapiro-wilk test and Q-Q plots. To check the if the assumption of constant variance of errors (also known as homoscedasticity) we use the Breuch Pagan test (we will refer to it as "bptest" in this report) and Residual plots. We will check for unnecessary outliers using cooks.distance. And Finally we will check for serious multicollinearity using variance inflation factor (we will refer to it as "vif" in this report).
 
@@ -402,7 +406,11 @@ shapiro.test(sample(resid(birth_model2), 1500))
     ##  Shapiro-Wilk normality test
     ## 
     ## data:  sample(resid(birth_model2), 1500)
+<<<<<<< HEAD
     ## W = 0.97406, p-value = 8.354e-16
+=======
+    ## W = 0.96936, p-value < 2.2e-16
+>>>>>>> 35deaae02b647d4a7fd87cc8afa8f284c7d65923
 
 ``` r
 vif(birth_model2)
@@ -495,7 +503,11 @@ shapiro.test(sample(resid(birth_model_noinf), 1500))
     ##  Shapiro-Wilk normality test
     ## 
     ## data:  sample(resid(birth_model_noinf), 1500)
+<<<<<<< HEAD
     ## W = 0.9988, p-value = 0.4066
+=======
+    ## W = 0.99857, p-value = 0.252
+>>>>>>> 35deaae02b647d4a7fd87cc8afa8f284c7d65923
 
 ``` r
 vif(birth_model_noinf)
@@ -647,7 +659,11 @@ shapiro.test(sample(resid(birth_redmodel_noinf), 1500))
     ##  Shapiro-Wilk normality test
     ## 
     ## data:  sample(resid(birth_redmodel_noinf), 1500)
+<<<<<<< HEAD
     ## W = 0.99868, p-value = 0.3172
+=======
+    ## W = 0.99916, p-value = 0.7528
+>>>>>>> 35deaae02b647d4a7fd87cc8afa8f284c7d65923
 
 ``` r
 vif(birth_redmodel_noinf)
@@ -796,7 +812,11 @@ shapiro.test(sample(resid(birth_aicmodel), 1500))
     ##  Shapiro-Wilk normality test
     ## 
     ## data:  sample(resid(birth_aicmodel), 1500)
+<<<<<<< HEAD
     ## W = 0.96897, p-value < 2.2e-16
+=======
+    ## W = 0.97069, p-value < 2.2e-16
+>>>>>>> 35deaae02b647d4a7fd87cc8afa8f284c7d65923
 
 ``` r
 vif(birth_aicmodel)
@@ -891,7 +911,11 @@ shapiro.test(sample(resid(fit_aic), 1500))
     ##  Shapiro-Wilk normality test
     ## 
     ## data:  sample(resid(fit_aic), 1500)
+<<<<<<< HEAD
     ## W = 0.99843, p-value = 0.1829
+=======
+    ## W = 0.97767, p-value = 1.647e-14
+>>>>>>> 35deaae02b647d4a7fd87cc8afa8f284c7d65923
 
 ``` r
 vif(fit_aic)
