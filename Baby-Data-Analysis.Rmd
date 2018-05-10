@@ -8,7 +8,7 @@ output:
 ---
 
 #Predicting a Baby's Health Based on NCHS' Vital Statistics Natality Birth Data
-aa
+
 ##Introduction
 ###Statement
 

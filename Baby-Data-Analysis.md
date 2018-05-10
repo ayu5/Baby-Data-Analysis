@@ -324,7 +324,7 @@ shapiro.test(sample(resid(birth_model), 1500))
     ##  Shapiro-Wilk normality test
     ## 
     ## data:  sample(resid(birth_model), 1500)
-    ## W = 0.97145, p-value < 2.2e-16
+    ## W = 0.97025, p-value < 2.2e-16
 
 We will output various graphs to check for any violations in our model. To check if the errors follow a normal distribution we use the shapiro-wilk test and Q-Q plots. To check the if the assumption of constant variance of errors (also known as homoscedasticity) we use the Breuch Pagan test (we will refer to it as "bptest" in this report) and Residual plots. We will check for unnecessary outliers using cooks.distance. And Finally we will check for serious multicollinearity using variance inflation factor (we will refer to it as "vif" in this report).
 
@@ -402,7 +402,7 @@ shapiro.test(sample(resid(birth_model2), 1500))
     ##  Shapiro-Wilk normality test
     ## 
     ## data:  sample(resid(birth_model2), 1500)
-    ## W = 0.96974, p-value < 2.2e-16
+    ## W = 0.96936, p-value < 2.2e-16
 
 ``` r
 vif(birth_model2)
@@ -495,7 +495,7 @@ shapiro.test(sample(resid(birth_model_noinf), 1500))
     ##  Shapiro-Wilk normality test
     ## 
     ## data:  sample(resid(birth_model_noinf), 1500)
-    ## W = 0.99886, p-value = 0.4634
+    ## W = 0.99857, p-value = 0.252
 
 ``` r
 vif(birth_model_noinf)
@@ -647,7 +647,7 @@ shapiro.test(sample(resid(birth_redmodel_noinf), 1500))
     ##  Shapiro-Wilk normality test
     ## 
     ## data:  sample(resid(birth_redmodel_noinf), 1500)
-    ## W = 0.99899, p-value = 0.585
+    ## W = 0.99916, p-value = 0.7528
 
 ``` r
 vif(birth_redmodel_noinf)
@@ -796,7 +796,7 @@ shapiro.test(sample(resid(birth_aicmodel), 1500))
     ##  Shapiro-Wilk normality test
     ## 
     ## data:  sample(resid(birth_aicmodel), 1500)
-    ## W = 0.97899, p-value = 5.321e-14
+    ## W = 0.97069, p-value < 2.2e-16
 
 ``` r
 vif(birth_aicmodel)
@@ -896,7 +896,7 @@ shapiro.test(sample(resid(fit_aic), 1500))
     ##  Shapiro-Wilk normality test
     ## 
     ## data:  sample(resid(fit_aic), 1500)
-    ## W = 0.98012, p-value = 1.513e-13
+    ## W = 0.97767, p-value = 1.647e-14
 
 ``` r
 vif(fit_aic)
