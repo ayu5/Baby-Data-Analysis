@@ -12,7 +12,7 @@ output:
 ##Introduction
 ###Statement
 
-The Centers for Disease Control and Prevention (CDC) is one of the main anchors in the Healthcare Industry in the United States. Since the main goal of this institute is to protect and improve public health, the CDC collects alot of data about our healthcare. One specific facet of the healthcare industry we like to explore is about babies and infant mortality.
+The Centers for Disease Control and Prevention (CDC) is one of the main anchors in the Healthcare Industry in the United States. Since the main goal of this institute is to protect and improve public health, the CDC collects alot of data about our healthcare. One specific facet of the healthcare industry we like to explore is about babies and infant mortality. aa
 
 ###Background Information
 
